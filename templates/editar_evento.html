@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Evento - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>✏️ Editar Evento</h2>
+    
+    <form method="POST" enctype="multipart/form-data" class="form">
+        <input type="hidden" name="imagen_actual" value="{{ evento.imagen_path }}">
+        
+        <div class="form-group">
+            <label for="titulo">📝 Título del Evento:</label>
+            <input type="text" id="titulo" name="titulo" value="{{ evento.titulo }}" required maxlength="200">
+        </div>
+        
+        <div class="form-group">
+            <label for="descripcion">📄 Descripción del Evento:</label>
+            <textarea id="descripcion" name="descripcion" rows="6" required>{{ evento.descripcion }}</textarea>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="fecha_evento">📅 Fecha y Hora:</label>
+                <input type="datetime-local" id="fecha_evento" name="fecha_evento" value="{{ evento.fecha_evento[:16] }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="cupo_maximo">👥 Cupo Máximo:</label>
+                <input type="number" id="cupo_maximo" name="cupo_maximo" value="{{ evento.cupo_maximo }}" min="0" placeholder="0 = Sin límite">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="lugar">📍 Lugar:</label>
+            <input type="text" id="lugar" name="lugar" value="{{ evento.lugar }}" required placeholder="Dirección o ubicación del evento">
+        </div>
+        
+        {% if evento.imagen_path %}
+        <div class="form-group">
+            <label>📷 Imagen Actual:</label>
+            <img src="{{ url_for('uploaded_file', filename=evento.imagen_path) }}" alt="Imagen actual" style="max-width: 200px; display: block; margin: 10px 0; border-radius: 5px;">
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="imagen">📷 Nueva Imagen (opcional):</label>
+            <input type="file" id="imagen" name="imagen" accept="image/*">
+            <small>Formatos permitidos: JPG, PNG, GIF. Deja vacío para mantener la imagen actual.</small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">✅ Actualizar Evento</button>
+            <a href="{{ url_for('eventos') }}" class="btn btn-secondary">❌ Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

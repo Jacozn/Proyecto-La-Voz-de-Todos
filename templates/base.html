@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Junta Vecinal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">🏘️ Junta Vecinal</h1>
+            {% if session.user_id %}
+            <div class="nav-menu">
+                <span class="user-info">👋 {{ session.nombre }} ({{ session.rol }})</span>
+                {% if session.rol == 'admin' %}
+                <a href="{{ url_for('crear_usuario_admin') }}" class="nav-link nav-link-small">➕ Usuario</a>
+                {% endif %}
+                <a href="{{ url_for('dashboard') }}" class="nav-link">Dashboard</a>
+                <a href="{{ url_for('denuncias') }}" class="nav-link">Denuncias</a>
+                <a href="{{ url_for('noticias') }}" class="nav-link">Noticias</a>
+                <a href="{{ url_for('eventos') }}" class="nav-link">Eventos</a>
+                <a href="{{ url_for('logout') }}" class="nav-link logout">Cerrar Sesión</a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                            <button onclick="this.parentElement.remove()" class="flash-close">&times;</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Modal para detalles -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // Funcionalidad del modal
+        const modal = document.getElementById('modal');
+        const modalBody = document.getElementById('modal-body');
+        const closeBtn = document.querySelector('.close');
+
+        function openModal(content) {
+            modalBody.innerHTML = content;
+            modal.style.display = 'block';
+        }
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Auto-cerrar mensajes flash después de 5 segundos
+        setTimeout(() => {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(msg => msg.remove());
+        }, 5000);
+    </script>
+</body>
+</html>

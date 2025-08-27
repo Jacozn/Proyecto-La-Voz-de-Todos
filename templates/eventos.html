@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+
+{% block title %}Eventos - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="content-section">
+    <div class="section-header">
+        <h2>📅 Eventos Comunitarios</h2>
+        <div class="section-actions">
+            {% if session.rol == 'admin' %}
+            <a href="{{ url_for('nuevo_evento') }}" class="btn btn-success">➕ Nuevo Evento</a>
+            {% endif %}
+            {% if session.rol == 'vecino' %}
+            <button id="toggleEventos" class="btn btn-info">📝 Ver Eventos Inscritos</button>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Formulario de Búsqueda -->
+    <form method="get" class="form-inline" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="text" name="busqueda" class="form-control"
+            placeholder="🔍 Buscar por título"
+            value="{{ request.args.get('busqueda', '') }}"
+            style="flex-grow: 1; min-width: 250px; max-width: 400px; padding: 8px;">
+        <input type="date" name="fecha_inicio" class="form-control"
+            value="{{ request.args.get('fecha_inicio', '') }}"
+            style="padding: 8px;">
+        <input type="date" name="fecha_fin" class="form-control"
+            value="{{ request.args.get('fecha_fin', '') }}"
+            style="padding: 8px;">
+        <input type="hidden" name="vista" id="vista" value="{{ request.args.get('vista', 'todos') }}">
+        <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+        <a href="{{ url_for('eventos') }}" class="btn btn-secondary">🔄 Limpiar</a>
+    </form> 
+    
+    <!-- Sección de todos los eventos -->
+    <div id="todosEventos">
+        <div class="events-grid">
+            {% for evento in eventos %}
+            <div class="event-card">
+                {% if evento.imagen_path %}
+                <img src="{{ url_for('uploaded_file', filename=evento.imagen_path) }}" alt="{{ evento.titulo }}" class="event-image">
+                {% else %}
+                <div class="event-image-placeholder">📅</div>
+                {% endif %}
+                
+                <div class="event-content">
+                    <h3>{{ evento.titulo }}</h3>
+                    <p class="event-date">📅 {{ evento.fecha_evento }}</p>
+                    <p class="event-location">📍 {{ evento.lugar }}</p>
+                    <p class="event-preview">{{ evento.descripcion[:100] }}...</p>
+                    
+                    {% if evento.cupo_maximo > 0 %}
+                    <p class="event-capacity">👥 Participación: {{ evento.inscripciones_actuales }}/{{ evento.cupo_maximo }}</p>
+                    {% else %}
+                    <p class="event-capacity">👥 Inscritos: {{ evento.inscripciones_actuales }} (Sin límite)</p>
+                    {% endif %}
+                    
+                    <div class="event-actions">
+                        <button onclick="verEventoCompleto({{ evento.id }})" class="btn btn-sm btn-info">👁️ Ver detalles</button>
+                        
+                        {% if session.rol == 'vecino' %}
+                            {% if evento.id in inscripciones %}
+                            <span class="btn btn-sm btn-success disabled">✅ Inscrito</span>
+                            <a href="{{ url_for('desinscribirse_evento', evento_id=evento.id) }}" 
+                               onclick="return confirm('¿Estás seguro de que quieres desinscribirte de este evento?')"
+                               class="btn btn-sm btn-warning">❌ Desinscribirse</a>
+                            {% else %}
+                                {% if evento.cupo_maximo == 0 or evento.inscripciones_actuales < evento.cupo_maximo %}
+                                <a href="{{ url_for('inscribirse_evento', evento_id=evento.id) }}" class="btn btn-sm btn-primary">📝 Inscribirse</a>
+                                {% else %}
+                                <span class="btn btn-sm btn-secondary disabled">🚫 Cupo lleno</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                        
+                        {% if session.rol == 'admin' %}
+                        <a href="{{ url_for('editar_evento', evento_id=evento.id) }}" class="btn btn-sm btn-warning">✏️ Editar</a>
+                        <a href="{{ url_for('eliminar_evento', evento_id=evento.id) }}" 
+                           onclick="return confirm('¿Estás seguro de eliminar este evento? Se eliminarán también todas las inscripciones.')" 
+                           class="btn btn-sm btn-danger">🗑️ Eliminar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Sección de eventos inscritos (solo vecinos) -->
+    {% if session.rol == 'vecino' %}
+    <div id="eventosInscritos" style="display: none;">
+        {% if eventos_inscritos %}
+        <div class="events-grid">
+            {% for evento in eventos_inscritos %}
+            <div class="event-card">
+                {% if evento.imagen_path %}
+                <img src="{{ url_for('uploaded_file', filename=evento.imagen_path) }}" alt="{{ evento.titulo }}" class="event-image">
+                {% else %}
+                <div class="event-image-placeholder">📅</div>
+                {% endif %}
+                
+                <div class="event-content">
+                    <h3>{{ evento.titulo }}</h3>
+                    <p class="event-date">📅 {{ evento.fecha_evento }}</p>
+                    <p class="event-location">📍 {{ evento.lugar }}</p>
+                    <p class="event-preview">{{ evento.descripcion[:100] }}...</p>
+                    
+                    {% if evento.cupo_maximo > 0 %}
+                    <p class="event-capacity">👥 Participación: {{ evento.inscripciones_actuales }}/{{ evento.cupo_maximo }}</p>
+                    {% else %}
+                    <p class="event-capacity">👥 Inscritos: {{ evento.inscripciones_actuales }} (Sin límite)</p>
+                    {% endif %}
+                    
+                    <div class="event-actions">
+                        <button onclick="verEventoCompleto({{ evento.id }})" class="btn btn-sm btn-info">👁️ Ver detalles</button>
+                        <a href="{{ url_for('desinscribirse_evento', evento_id=evento.id) }}" 
+                           onclick="return confirm('¿Estás seguro de que quieres desinscribirte de este evento?')"
+                           class="btn btn-sm btn-warning">❌ Desinscribirse</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <h3>📅 No tienes eventos inscritos</h3>
+            <p>Explora los eventos disponibles y únete a las actividades de tu comunidad.</p>
+            <button onclick="mostrarTodosEventos()" class="btn btn-primary">Ver eventos disponibles</button>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+{% if session.rol == 'vecino' %}
+let mostrandoInscritos = false;
+
+function toggleEventos() {
+    const todosEventos = document.getElementById('todosEventos');
+    const eventosInscritos = document.getElementById('eventosInscritos');
+    const toggleBtn = document.getElementById('toggleEventos');
+    
+    if (mostrandoInscritos) {
+        // Mostrar todos los eventos
+        todosEventos.style.display = 'block';
+        eventosInscritos.style.display = 'none';
+        toggleBtn.textContent = '📝 Ver Eventos Inscritos';
+        toggleBtn.className = 'btn btn-info';
+        mostrandoInscritos = false;
+    } else {
+        // Mostrar eventos inscritos
+        todosEventos.style.display = 'none';
+        eventosInscritos.style.display = 'block';
+        toggleBtn.textContent = '📅 Ver Todos los Eventos';
+        toggleBtn.className = 'btn btn-secondary';
+        mostrandoInscritos = true;
+    }
+}
+
+function mostrarTodosEventos() {
+    const todosEventos = document.getElementById('todosEventos');
+    const eventosInscritos = document.getElementById('eventosInscritos');
+    const toggleBtn = document.getElementById('toggleEventos');
+    
+    todosEventos.style.display = 'block';
+    eventosInscritos.style.display = 'none';
+    toggleBtn.textContent = '📝 Ver Eventos Inscritos';
+    toggleBtn.className = 'btn btn-info';
+    mostrandoInscritos = false;
+}
+
+// Al cargar la página, leer ?vista=inscritos y mostrar esa vista
+window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const vista = params.get('vista') || 'todos';
+    
+    if (vista === 'inscritos') {
+        document.getElementById('todosEventos').style.display = 'none';
+        document.getElementById('eventosInscritos').style.display = 'block';
+        document.getElementById('toggleEventos').textContent = '📅 Ver Todos los Eventos';
+        document.getElementById('toggleEventos').className = 'btn btn-secondary';
+        mostrandoInscritos = true;
+    } else {
+        document.getElementById('todosEventos').style.display = 'block';
+        document.getElementById('eventosInscritos').style.display = 'none';
+        document.getElementById('toggleEventos').textContent = '📝 Ver Eventos Inscritos';
+        document.getElementById('toggleEventos').className = 'btn btn-info';
+        mostrandoInscritos = false;
+    }
+});
+
+document.getElementById('toggleEventos').addEventListener('click', function () {
+    const params = new URLSearchParams(window.location.search);
+    const nuevaVista = mostrandoInscritos ? 'todos' : 'inscritos';
+    params.set('vista', nuevaVista);
+    window.location.search = params.toString(); // recarga con nuevo estado en URL
+});
+{% endif %}
+
+function verEventoCompleto(eventoId) {
+    const eventos = {{ (eventos + eventos_inscritos) | tojson | safe }};
+    const evento = eventos.find(e => e.id === eventoId);
+    
+    if (evento) {
+        let imagenHtml = '';
+        if (evento.imagen_path) {
+            imagenHtml = `<img src="/uploads/${evento.imagen_path}" alt="${evento.titulo}" style="max-width: 100%; margin-bottom: 15px; border-radius: 5px;">`;
+        }
+        
+        let participacionHtml = '';
+        if (evento.cupo_maximo > 0) {
+            participacionHtml = `<p><strong>👥 Participación:</strong> ${evento.inscripciones_actuales}/${evento.cupo_maximo}</p>`;
+        } else {
+            participacionHtml = `<p><strong>👥 Inscritos:</strong> ${evento.inscripciones_actuales} (Sin límite)</p>`;
+        }
+        
+        const content = `
+            <h3>📅 ${evento.titulo}</h3>
+            <p><strong>📅 Fecha:</strong> ${evento.fecha_evento}</p>
+            <p><strong>📍 Lugar:</strong> ${evento.lugar}</p>
+            ${participacionHtml}
+            ${imagenHtml}
+            <div style="text-align: justify; line-height: 1.6;">
+                <strong>📄 Descripción:</strong><br>
+                ${evento.descripcion.replace(/\n/g, '<br>')}
+            </div>
+        `;
+        
+        openModal(content);
+    }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña</title>
+    <link rel="stylesheet" href="../static/restablecer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Restablecer Contraseña</h1>
+
+        <!-- Mensajes flash para errores o éxito -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-message {{ 'success' if 'success' in messages[0] else 'error' }}">
+                {{ messages[0] }}
+            </div>
+        {% endif %}
+        {% endwith %}
+            
+        <!-- Formulario de restablecimiento -->
+        <form method="POST">
+            <label for="nueva_contrasena">Nueva Contraseña:</label>
+            <div class="form-group password-group">
+                <i class="fas fa-lock icon"></i>
+                <input type="password" name="nueva_contrasena" placeholder="Introduce tu nueva contraseña" id="nueva_contrasena" required>
+                <i class="fas fa-eye toggle-password" id="togglePassword1"></i>
+            </div>
+
+            <label for="confirmar_contrasena">Confirmar Contraseña:</label>
+            <div class="form-group password-group">
+                <i class="fas fa-lock icon"></i>
+                <input type="password" name="confirmar_contrasena" placeholder="Confirma tu nueva contraseña" id="confirmar_contrasena" required>
+                <i class="fas fa-eye toggle-password" id="togglePassword2"></i>
+            </div>
+
+            <button type="submit">Restablecer Contraseña</button>
+        </form>
+
+        <p><a href="{{ url_for('login') }}">Volver al inicio de sesión</a></p>
+    </div>
+
+    <script>
+        const togglePassword1 = document.getElementById('togglePassword1');
+        const passwordInput1 = document.getElementById('nueva_contrasena');
+
+        const togglePassword2 = document.getElementById('togglePassword2');
+        const passwordInput2 = document.getElementById('confirmar_contrasena');
+
+        togglePassword1.addEventListener('click', function () {
+            const type = passwordInput1.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput1.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+
+        togglePassword2.addEventListener('click', function () {
+            const type = passwordInput2.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput2.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    </script>
+</body>
+</html>

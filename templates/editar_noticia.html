@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Noticia - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>✏️ Editar Noticia</h2>
+    
+    <form method="POST" enctype="multipart/form-data" class="form">
+        <input type="hidden" name="imagen_actual" value="{{ noticia.imagen_path }}">
+        
+        <div class="form-group">
+            <label for="titulo">📝 Título de la Noticia:</label>
+            <input type="text" id="titulo" name="titulo" value="{{ noticia.titulo }}" required maxlength="200">
+        </div>
+        
+        <div class="form-group">
+            <label for="descripcion">📄 Contenido de la Noticia:</label>
+            <textarea id="descripcion" name="descripcion" rows="8" required>{{ noticia.descripcion }}</textarea>
+        </div>
+        
+        {% if noticia.imagen_path %}
+        <div class="form-group">
+            <label>📷 Imagen Actual:</label>
+            <img src="{{ url_for('uploaded_file', filename=noticia.imagen_path) }}" alt="Imagen actual" style="max-width: 200px; display: block; margin: 10px 0;">
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label for="imagen">📷 Nueva Imagen (opcional):</label>
+            <input type="file" id="imagen" name="imagen" accept="image/*">
+            <small>Formatos permitidos: JPG, PNG, GIF. Deja vacío para mantener la imagen actual.</small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn btn-success">✅ Actualizar Noticia</button>
+            <a href="{{ url_for('noticias') }}" class="btn btn-secondary">❌ Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>🔐 Iniciar Sesión</h2>
+        <!-- Mostrar mensaje de error o éxito -->
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-message {{ 'success-message' if 'Tu contraseña ha sido restablecida con éxito' in messages[0] else 'error-message' }}">
+                    {% for message in messages %}
+                        {{ message }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            {% endwith %}
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="email">📧 Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">🔒 Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+        </form>
+
+        <!-- Enlace para recuperación de contraseña -->
+        <div class="auth-links">
+            <p class="forgot-password"><a href="/recuperar_contrasena_correo">¿Olvidaste tu contraseña?</a></p>
+        </div>
+
+        <div class="auth-links">
+            <p>¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a></p>
+        </div>
+        
+        <div class="demo-credentials">
+            <h4>👥 Credenciales de prueba:</h4>
+            <p><strong>Admin:</strong> admin@juntavecinal.com / admin123</p>
+            <p><strong>Vecino:</strong> juan@email.com / 123456</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

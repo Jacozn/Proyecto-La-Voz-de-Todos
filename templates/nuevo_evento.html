@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Nuevo Evento - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>➕ Nuevo Evento</h2>
+    
+    <form id="eventoForm" method="POST" enctype="multipart/form-data" class="form">
+        <div class="form-group">
+            <label for="titulo">📝 Título del Evento:</label>
+            <input type="text" id="titulo" name="titulo" required maxlength="200">
+        </div>
+        
+        <div class="form-group">
+            <label for="descripcion">📄 Descripción del Evento:</label>
+            <textarea id="descripcion" name="descripcion" rows="6" required placeholder="Describe el evento, actividades, requisitos, etc..."></textarea>
+        </div>
+        
+        <div class="form-row">
+            <div class="form-group">
+                <label for="fecha_evento">📅 Fecha y Hora:</label>
+                <input type="datetime-local" id="fecha_evento" name="fecha_evento" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="cupo_maximo">👥 Cupo Máximo:</label>
+                <input type="number" id="cupo_maximo" name="cupo_maximo" min="0" placeholder="0 = Sin límite">
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label for="lugar">📍 Lugar:</label>
+            <input type="text" id="lugar" name="lugar" required placeholder="Dirección o ubicación del evento">
+        </div>
+        
+        <div class="form-group">
+            <label for="imagen">📷 Imagen/Folleto (opcional):</label>
+            <input type="file" id="imagen" name="imagen" accept="image/*">
+            <small>Formatos permitidos: JPG, PNG, GIF</small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="button" id="btnCrearEvento" class="btn btn-success">✅ Crear Evento</button>
+            <a href="{{ url_for('eventos') }}" class="btn btn-secondary">❌ Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<!-- ⚠️ MODAL DE CONFIRMACIÓN PARA EVENTO -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content modal-confirm">
+        <div class="modal-header">
+            <h3>⚠️ Confirmar Creación de Evento</h3>
+        </div>
+        <div class="modal-body">
+            <p>¿Estás seguro de que quieres crear este evento?</p>
+            <div class="evento-preview">
+                <p><strong>📝 Título:</strong> <span id="previewTitulo"></span></p>
+                <p><strong>📅 Fecha:</strong> <span id="previewFecha"></span></p>
+                <p><strong>📍 Lugar:</strong> <span id="previewLugar"></span></p>
+                <p><strong>👥 Cupo:</strong> <span id="previewCupo"></span></p>
+                <p><strong>📄 Descripción:</strong> <span id="previewDescripcion"></span></p>
+                <p id="previewImagen" style="display: none;"><strong>📷 Imagen:</strong> <span id="previewImagenNombre"></span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnConfirmarCreacion" class="btn btn-success">✅ Sí, Crear Evento</button>
+            <button type="button" id="btnCancelarCreacion" class="btn btn-secondary">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('eventoForm');
+    const btnCrearEvento = document.getElementById('btnCrearEvento');
+    const confirmModal = document.getElementById('confirmModal');
+    const btnConfirmarCreacion = document.getElementById('btnConfirmarCreacion');
+    const btnCancelarCreacion = document.getElementById('btnCancelarCreacion');
+    
+    // Elementos de preview
+    const previewTitulo = document.getElementById('previewTitulo');
+    const previewFecha = document.getElementById('previewFecha');
+    const previewLugar = document.getElementById('previewLugar');
+    const previewCupo = document.getElementById('previewCupo');
+    const previewDescripcion = document.getElementById('previewDescripcion');
+    const previewImagen = document.getElementById('previewImagen');
+    const previewImagenNombre = document.getElementById('previewImagenNombre');
+    
+    // Campos del formulario
+    const titulo = document.getElementById('titulo');
+    const fechaEvento = document.getElementById('fecha_evento');
+    const lugar = document.getElementById('lugar');
+    const cupoMaximo = document.getElementById('cupo_maximo');
+    const descripcion = document.getElementById('descripcion');
+    const imagen = document.getElementById('imagen');
+
+    // ✅ VALIDACIÓN DEL FORMULARIO
+    function validarFormulario() {
+        if (!titulo.value.trim()) {
+            alert('❌ Por favor, ingresa un título para el evento.');
+            titulo.focus();
+            return false;
+        }
+        
+        if (!fechaEvento.value) {
+            alert('❌ Por favor, selecciona la fecha del evento.');
+            fechaEvento.focus();
+            return false;
+        }
+        
+        if (!lugar.value.trim()) {
+            alert('❌ Por favor, ingresa el lugar del evento.');
+            lugar.focus();
+            return false;
+        }
+        
+        if (!descripcion.value.trim()) {
+            alert('❌ Por favor, describe el evento.');
+            descripcion.focus();
+            return false;
+        }
+        
+        return true;
+    }
+
+    // 📅 FORMATEAR FECHA PARA MOSTRAR
+    function formatearFecha(fechaISO) {
+        const fecha = new Date(fechaISO);
+        return fecha.toLocaleString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    // 👁️ MOSTRAR PREVIEW EN EL MODAL
+    function mostrarPreview() {
+        previewTitulo.textContent = titulo.value;
+        previewFecha.textContent = formatearFecha(fechaEvento.value);
+        previewLugar.textContent = lugar.value;
+        
+        const cupo = cupoMaximo.value || '0';
+        previewCupo.textContent = cupo === '0' ? 'Sin límite' : cupo + ' personas';
+        
+        // Limitar descripción a 150 caracteres para el preview
+        const descripcionTexto = descripcion.value.length > 150 
+            ? descripcion.value.substring(0, 150) + '...' 
+            : descripcion.value;
+        previewDescripcion.textContent = descripcionTexto;
+        
+        // Mostrar información de imagen si existe
+        if (imagen.files && imagen.files[0]) {
+            previewImagenNombre.textContent = imagen.files[0].name;
+            previewImagen.style.display = 'block';
+        } else {
+            previewImagen.style.display = 'none';
+        }
+    }
+
+    // 🚀 EVENTO: CREAR EVENTO (MOSTRAR CONFIRMACIÓN)
+    btnCrearEvento.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Validar formulario
+        if (!validarFormulario()) {
+            return;
+        }
+        
+        // Mostrar preview y modal
+        mostrarPreview();
+        confirmModal.style.display = 'block';
+    });
+
+    // ✅ EVENTO: CONFIRMAR CREACIÓN
+    btnConfirmarCreacion.addEventListener('click', function() {
+        confirmModal.style.display = 'none';
+        
+        // Mostrar indicador de carga
+        btnCrearEvento.innerHTML = '⏳ Creando Evento...';
+        btnCrearEvento.disabled = true;
+        
+        // Enviar formulario
+        form.submit();
+    });
+
+    // ❌ EVENTO: CANCELAR CREACIÓN
+    btnCancelarCreacion.addEventListener('click', function() {
+        confirmModal.style.display = 'none';
+    });
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', function(event) {
+        if (event.target === confirmModal) {
+            confirmModal.style.display = 'none';
+        }
+    });
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && confirmModal.style.display === 'block') {
+            confirmModal.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

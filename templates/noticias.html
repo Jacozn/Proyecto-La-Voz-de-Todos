@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Noticias - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="content-section">
+    <div class="section-header">
+        <h2>📰 Noticias</h2>
+        {% if session.rol == 'admin' %}
+        <a href="{{ url_for('nueva_noticia') }}" class="btn btn-success">➕ Nueva Noticia</a>
+        {% endif %}
+    </div>
+    
+    <!-- Formulario de Búsqueda -->
+    <form method="get" class="form-inline" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="text" name="busqueda" class="form-control" placeholder="🔍 Buscar por título"
+            value="{{ request.args.get('busqueda', '') }}"
+            style="flex-grow: 1; min-width: 250px; max-width:400px; padding: 8px;">
+        
+        <input type="date" name="fecha_inicio" class="form-control"
+            value="{{ request.args.get('fecha_inicio', '') }}"
+            style="padding: 8px;">
+        <input type="date" name="fecha_fin" class="form-control"
+            value="{{ request.args.get('fecha_fin', '') }}"
+            style="padding: 8px;">
+        <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+        <a href="{{ url_for('noticias') }}" class="btn btn-secondary">🔄 Limpiar</a>
+    </form>
+    
+    <div class="news-grid">
+        {% for noticia in noticias %}
+        <div class="news-card">
+            {% if noticia.imagen_path %}
+            <img src="{{ url_for('uploaded_file', filename=noticia.imagen_path) }}" alt="{{ noticia.titulo }}" class="news-image">
+            {% else %}
+            <div class="news-image-placeholder">📰</div>
+            {% endif %}
+            
+            <div class="news-content">
+                <h3>{{ noticia.titulo }}</h3>
+                <p class="news-date">📅 {{ noticia.fecha_publicacion[:16] }}</p>
+                <p class="news-preview">{{ noticia.descripcion[:150] }}...</p>
+                
+                <div class="news-actions">
+                    <button onclick="verNoticiaCompleta({{ noticia.id }})" class="btn btn-sm btn-info">👁️ Leer más</button>
+                    {% if session.rol == 'admin' %}
+                    <a href="{{ url_for('editar_noticia', noticia_id=noticia.id) }}" class="btn btn-sm btn-warning">✏️ Editar</a>
+                    <a href="{{ url_for('eliminar_noticia', noticia_id=noticia.id) }}" 
+                       onclick="return confirm('¿Estás seguro de eliminar esta noticia?')" 
+                       class="btn btn-sm btn-danger">🗑️ Eliminar</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function verNoticiaCompleta(noticiaId) {
+    // Buscar la noticia en la lista
+    const noticias = {{ noticias | tojson | safe }};
+    const noticia = noticias.find(n => n.id === noticiaId);
+    
+    if (noticia) {
+        let imagenHtml = '';
+        if (noticia.imagen_path) {
+            imagenHtml = `<img src="/uploads/${noticia.imagen_path}" alt="${noticia.titulo}" style="max-width: 100%; margin-bottom: 15px; border-radius: 5px;">`;
+        }
+        
+        const content = `
+            <h3>📰 ${noticia.titulo}</h3>
+            <p class="news-date" style="color: #666; margin-bottom: 15px;">📅 ${noticia.fecha_publicacion.substring(0, 16)}</p>
+            ${imagenHtml}
+            <div style="text-align: justify; line-height: 1.6;">
+                ${noticia.descripcion.replace(/\n/g, '<br>')}
+            </div>
+        `;
+        
+        openModal(content);
+    }
+}
+</script>
+{% endblock %}

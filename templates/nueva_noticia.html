@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Noticia - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>➕ Nueva Noticia</h2>
+    
+    <form id="noticiaForm" method="POST" enctype="multipart/form-data" class="form">
+        <div class="form-group">
+            <label for="titulo">📝 Título de la Noticia:</label>
+            <input type="text" id="titulo" name="titulo" required maxlength="200">
+        </div>
+        
+        <div class="form-group">
+            <label for="descripcion">📄 Contenido de la Noticia:</label>
+            <textarea id="descripcion" name="descripcion" rows="8" required placeholder="Escribe el contenido completo de la noticia..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="imagen">📷 Imagen (opcional):</label>
+            <input type="file" id="imagen" name="imagen" accept="image/*">
+            <small>Formatos permitidos: JPG, PNG, GIF</small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="button" id="btnCrearNoticia" class="btn btn-success">✅ Publicar Noticia</button>
+            <a href="{{ url_for('noticias') }}" class="btn btn-secondary">❌ Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<!-- ⚠️ MODAL DE CONFIRMACIÓN PARA NOTICIA -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content modal-confirm">
+        <div class="modal-header">
+            <h3>⚠️ Confirmar Publicación de Noticia</h3>
+        </div>
+        <div class="modal-body">
+            <p>¿Estás seguro de que quieres publicar esta noticia?</p>
+            <div class="noticia-preview">
+                <p><strong>📝 Título:</strong> <span id="previewTitulo"></span></p>
+                <p><strong>📄 Contenido:</strong> <span id="previewDescripcion"></span></p>
+                <p id="previewImagen" style="display: none;"><strong>📷 Imagen:</strong> <span id="previewImagenNombre"></span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnConfirmarPublicacion" class="btn btn-success">✅ Sí, Publicar Noticia</button>
+            <button type="button" id="btnCancelarPublicacion" class="btn btn-secondary">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('noticiaForm');
+    const btnCrearNoticia = document.getElementById('btnCrearNoticia');
+    const confirmModal = document.getElementById('confirmModal');
+    const btnConfirmarPublicacion = document.getElementById('btnConfirmarPublicacion');
+    const btnCancelarPublicacion = document.getElementById('btnCancelarPublicacion');
+    
+    // Elementos de preview
+    const previewTitulo = document.getElementById('previewTitulo');
+    const previewDescripcion = document.getElementById('previewDescripcion');
+    const previewImagen = document.getElementById('previewImagen');
+    const previewImagenNombre = document.getElementById('previewImagenNombre');
+    
+    // Campos del formulario
+    const titulo = document.getElementById('titulo');
+    const descripcion = document.getElementById('descripcion');
+    const imagen = document.getElementById('imagen');
+
+    // ✅ VALIDACIÓN DEL FORMULARIO
+    function validarFormulario() {
+        if (!titulo.value.trim()) {
+            alert('❌ Por favor, ingresa un título para la noticia.');
+            titulo.focus();
+            return false;
+        }
+        
+        if (!descripcion.value.trim()) {
+            alert('❌ Por favor, escribe el contenido de la noticia.');
+            descripcion.focus();
+            return false;
+        }
+        
+        return true;
+    }
+
+    // 👁️ MOSTRAR PREVIEW EN EL MODAL
+    function mostrarPreview() {
+        previewTitulo.textContent = titulo.value;
+        
+        // Limitar descripción a 200 caracteres para el preview
+        const descripcionTexto = descripcion.value.length > 200 
+            ? descripcion.value.substring(0, 200) + '...' 
+            : descripcion.value;
+        previewDescripcion.textContent = descripcionTexto;
+        
+        // Mostrar información de imagen si existe
+        if (imagen.files && imagen.files[0]) {
+            previewImagenNombre.textContent = imagen.files[0].name;
+            previewImagen.style.display = 'block';
+        } else {
+            previewImagen.style.display = 'none';
+        }
+    }
+
+    // 🚀 EVENTO: CREAR NOTICIA (MOSTRAR CONFIRMACIÓN)
+    btnCrearNoticia.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Validar formulario
+        if (!validarFormulario()) {
+            return;
+        }
+        
+        // Mostrar preview y modal
+        mostrarPreview();
+        confirmModal.style.display = 'block';
+    });
+
+    // ✅ EVENTO: CONFIRMAR PUBLICACIÓN
+    btnConfirmarPublicacion.addEventListener('click', function() {
+        confirmModal.style.display = 'none';
+        
+        // Mostrar indicador de carga
+        btnCrearNoticia.innerHTML = '⏳ Publicando Noticia...';
+        btnCrearNoticia.disabled = true;
+        
+        // Enviar formulario
+        form.submit();
+    });
+
+    // ❌ EVENTO: CANCELAR PUBLICACIÓN
+    btnCancelarPublicacion.addEventListener('click', function() {
+        confirmModal.style.display = 'none';
+    });
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', function(event) {
+        if (event.target === confirmModal) {
+            confirmModal.style.display = 'none';
+        }
+    });
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && confirmModal.style.display === 'block') {
+            confirmModal.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

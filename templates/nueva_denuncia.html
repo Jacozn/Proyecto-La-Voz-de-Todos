@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Denuncia - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <h2>➕ Nueva Denuncia</h2>
+    
+    <form id="denunciaForm" method="POST" enctype="multipart/form-data" class="form">
+        <div class="form-group">
+            <label for="titulo">📝 Título de la Denuncia:</label>
+            <input type="text" id="titulo" name="titulo" required maxlength="200">
+        </div>
+        
+        <div class="form-group">
+            <label for="categoria">🏷️ Categoría:</label>
+            <select id="categoria" name="categoria" required>
+                <option value="">Seleccionar categoría</option>
+                <option value="alumbrado">Alumbrado Público</option>
+                <option value="limpieza">Limpieza</option>
+                <option value="seguridad">Seguridad</option>
+                <option value="infraestructura">Infraestructura</option>
+                <option value="ruidos">Ruidos Molestos</option>
+                <option value="otros">Otros</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="descripcion">📄 Descripción Detallada:</label>
+            <textarea id="descripcion" name="descripcion" rows="6" required placeholder="Describe el problema con el mayor detalle posible..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="imagen">📷 Imagen/Evidencia (opcional):</label>
+            <input type="file" id="imagen" name="imagen" accept="image/*,.pdf">
+            <small>Formatos permitidos: JPG, PNG, GIF, PDF</small>
+        </div>
+        
+        <div class="form-actions">
+            <button type="button" id="btnCrearDenuncia" class="btn btn-success">✅ Crear Denuncia</button>
+            <a href="{{ url_for('denuncias') }}" class="btn btn-secondary">❌ Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<!-- ⚠️ MODAL DE CONFIRMACIÓN -->
+<div id="confirmModal" class="modal">
+    <div class="modal-content modal-confirm">
+        <div class="modal-header">
+            <h3>⚠️ Confirmar Envío de Denuncia</h3>
+        </div>
+        <div class="modal-body">
+            <p>¿Estás seguro de que quieres enviar esta denuncia?</p>
+            <div class="denuncia-preview">
+                <p><strong>📝 Título:</strong> <span id="previewTitulo"></span></p>
+                <p><strong>🏷️ Categoría:</strong> <span id="previewCategoria"></span></p>
+                <p><strong>📄 Descripción:</strong> <span id="previewDescripcion"></span></p>
+                <p id="previewImagen" style="display: none;"><strong>📷 Imagen:</strong> <span id="previewImagenNombre"></span></p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnConfirmarEnvio" class="btn btn-success">✅ Sí, Enviar Denuncia</button>
+            <button type="button" id="btnCancelarEnvio" class="btn btn-secondary">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('denunciaForm');
+    const btnCrearDenuncia = document.getElementById('btnCrearDenuncia');
+    const confirmModal = document.getElementById('confirmModal');
+    const btnConfirmarEnvio = document.getElementById('btnConfirmarEnvio');
+    const btnCancelarEnvio = document.getElementById('btnCancelarEnvio');
+    
+    // Elementos de preview
+    const previewTitulo = document.getElementById('previewTitulo');
+    const previewCategoria = document.getElementById('previewCategoria');
+    const previewDescripcion = document.getElementById('previewDescripcion');
+    const previewImagen = document.getElementById('previewImagen');
+    const previewImagenNombre = document.getElementById('previewImagenNombre');
+    
+    // Campos del formulario
+    const titulo = document.getElementById('titulo');
+    const categoria = document.getElementById('categoria');
+    const descripcion = document.getElementById('descripcion');
+    const imagen = document.getElementById('imagen');
+
+    // ✅ VALIDACIÓN DEL FORMULARIO
+    function validarFormulario() {
+        if (!titulo.value.trim()) {
+            alert('❌ Por favor, ingresa un título para la denuncia.');
+            titulo.focus();
+            return false;
+        }
+        
+        if (!categoria.value) {
+            alert('❌ Por favor, selecciona una categoría.');
+            categoria.focus();
+            return false;
+        }
+        
+        if (!descripcion.value.trim()) {
+            alert('❌ Por favor, describe el problema.');
+            descripcion.focus();
+            return false;
+        }
+        
+        return true;
+    }
+
+    // 👁️ MOSTRAR PREVIEW EN EL MODAL
+    function mostrarPreview() {
+        previewTitulo.textContent = titulo.value;
+        
+        // Obtener el texto de la opción seleccionada
+        const categoriaTexto = categoria.options[categoria.selectedIndex].text;
+        previewCategoria.textContent = categoriaTexto;
+        
+        // Limitar descripción a 150 caracteres para el preview
+        const descripcionTexto = descripcion.value.length > 150 
+            ? descripcion.value.substring(0, 150) + '...' 
+            : descripcion.value;
+        previewDescripcion.textContent = descripcionTexto;
+        
+        // Mostrar información de imagen si existe
+        if (imagen.files && imagen.files[0]) {
+            previewImagenNombre.textContent = imagen.files[0].name;
+            previewImagen.style.display = 'block';
+        } else {
+            previewImagen.style.display = 'none';
+        }
+    }
+
+    // 🚀 EVENTO: CREAR DENUNCIA (MOSTRAR CONFIRMACIÓN)
+    btnCrearDenuncia.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        // Validar formulario
+        if (!validarFormulario()) {
+            return;
+        }
+        
+        // Mostrar preview y modal
+        mostrarPreview();
+        confirmModal.style.display = 'block';
+    });
+
+    // ✅ EVENTO: CONFIRMAR ENVÍO
+    btnConfirmarEnvio.addEventListener('click', function() {
+        confirmModal.style.display = 'none';
+        
+        // Mostrar indicador de carga
+        btnCrearDenuncia.innerHTML = '⏳ Enviando Denuncia...';
+        btnCrearDenuncia.disabled = true;
+        
+        // Enviar formulario
+        form.submit();
+    });
+
+    // ❌ EVENTO: CANCELAR ENVÍO
+    btnCancelarEnvio.addEventListener('click', function() {
+        confirmModal.style.display = 'none';
+    });
+
+    // Cerrar modal al hacer clic fuera
+    window.addEventListener('click', function(event) {
+        if (event.target === confirmModal) {
+            confirmModal.style.display = 'none';
+        }
+    });
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && confirmModal.style.display === 'block') {
+            confirmModal.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

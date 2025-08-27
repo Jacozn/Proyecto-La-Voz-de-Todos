@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Denuncias - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="content-section">
+    <div class="section-header">
+        <h2>📩 Denuncias</h2>
+        {% if session.rol == 'vecino' %}
+        <a href="{{ url_for('nueva_denuncia') }}" class="btn btn-success">➕ Nueva Denuncia</a>
+        {% endif %}
+    </div>
+    
+    <!-- Formulario de Búsqueda y Filtros -->
+    <form method="get" class="form-inline" style="margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
+        <input type="text" name="busqueda" class="form-control" placeholder="🔍 Buscar por título, categoría{% if session.rol == 'admin' %} o usuario{% endif %}"
+            value="{{ request.args.get('busqueda', '') }}"
+            style="flex-grow: 1; min-width: 250px; max-width:400px; padding: 8px;">
+        
+        <select name="categoria" class="form-control" style="padding: 8px;">
+            <option value="">📂 Todas las categorías</option>
+            <option value="alumbrado" {% if request.args.get('categoria') == 'alumbrado' %}selected{% endif %}>Alumbrado Público</option>
+            <option value="limpieza" {% if request.args.get('categoria') == 'limpieza' %}selected{% endif %}>Limpieza</option>
+            <option value="seguridad" {% if request.args.get('categoria') == 'seguridad' %}selected{% endif %}>Seguridad</option>
+            <option value="infraestructura" {% if request.args.get('infraestructura') == 'infraestructura' %}selected{% endif %}>Infraestructura</option>
+            <option value="ruidos" {% if request.args.get('categoria') == 'ruidos' %}selected{% endif %}>Ruidos Molestos</option>
+            <option value="otros" {% if request.args.get('categoria') == 'otros' %}selected{% endif %}>Otros</option>
+        </select>
+        
+        <select name="estado" class="form-control" style="padding: 8px;">
+            <option value="">📊 Todos los estados</option>
+            <option value="pendiente" {% if request.args.get('estado') == 'pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="en_proceso" {% if request.args.get('estado') == 'en_proceso' %}selected{% endif %}>En Proceso</option>
+            <option value="resuelto" {% if request.args.get('estado') == 'resuelto' %}selected{% endif %}>Resuelto</option>
+        </select>
+        
+        <input type="date" name="fecha_inicio" class="form-control"
+            value="{{ request.args.get('fecha_inicio', '') }}"
+            style="padding: 8px;">
+        <input type="date" name="fecha_fin" class="form-control"
+            value="{{ request.args.get('fecha_fin', '') }}"
+            style="padding: 8px;">
+        
+        <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+        <a href="{{ url_for('denuncias') }}" class="btn btn-secondary">🔄 Limpiar</a>
+    </form>
+    
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Título</th>
+                    {% if session.rol == 'admin' %}
+                    <th>Usuario</th>
+                    {% endif %}
+                    <th>Categoría</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for denuncia in denuncias %}
+                <tr>
+                    <td>{{ denuncia.id }}</td>
+                    <td>{{ denuncia.titulo }}</td>
+                    {% if session.rol == 'admin' %}
+                    <td>{{ denuncia.usuario_nombre }}</td>
+                    {% endif %}
+                    <td>{{ denuncia.categoria }}</td>
+                    <td>
+                        <span class="status status-{{ denuncia.estado }}">
+                            {{ denuncia.estado.replace('_', ' ').title() }}
+                        </span>
+                    </td>
+                    <td>{{ denuncia.fecha_creacion[:16] }}</td>
+                    <td>
+                        <button onclick="verDetalle({{ denuncia.id }})" class="btn btn-sm btn-info">👁️ Ver</button>
+                        <a href="{{ url_for('descargar_denuncia_pdf', denuncia_id=denuncia.id) }}" class="btn btn-sm btn-secondary">📄 PDF</a>
+                        {% if session.rol == 'admin' %}
+                        <button onclick="responderDenuncia({{ denuncia.id }})" class="btn btn-sm btn-primary">💬 Responder</button>
+                        {% if denuncia.estado == 'resuelto' %}
+                        <a href="{{ url_for('eliminar_denuncia', denuncia_id=denuncia.id) }}" 
+                           onclick="return confirm('¿Estás seguro de eliminar esta denuncia resuelta?')" 
+                           class="btn btn-sm btn-danger">🗑️ Eliminar</a>
+                        {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para responder denuncia (solo admin) -->
+{% if session.rol == 'admin' %}
+<div id="responderModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="document.getElementById('responderModal').style.display='none'">&times;</span>
+        <h3>💬 Responder Denuncia</h3>
+        <form id="responderForm" method="POST">
+            <div class="form-group">
+                <label for="respuesta">Respuesta:</label>
+                <textarea id="respuesta" name="respuesta" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="estado">Estado:</label>
+                <select id="estado" name="estado" required>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en_proceso">En Proceso</option>
+                    <option value="resuelto">Resuelto</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Enviar Respuesta</button>
+        </form>
+    </div>
+</div>
+{% endif %}
+
+<script>
+function verDetalle(denunciaId) {
+    fetch('/ver_denuncia/' + denunciaId)
+        .then(response => response.json())
+        .then(denuncia => {
+            let imagenHtml = '';
+            if (denuncia.imagen_path) {
+                imagenHtml = `<img src="/uploads/${denuncia.imagen_path}" alt="Evidencia" style="max-width: 100%; margin: 15px 0; border-radius: 5px;">`;
+            }
+            
+            let respuestaHtml = '';
+            if (denuncia.respuesta_admin) {
+                respuestaHtml = `
+                    <div style="margin-top: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+                        <h4 style="color: #667eea; margin-bottom: 10px;">💬 Respuesta del Administrador:</h4>
+                        <p style="margin: 0; line-height: 1.6;">${denuncia.respuesta_admin.replace(/\n/g, '<br>')}</p>
+                    </div>
+                `;
+            }
+            
+            const content = `
+                <h3>📩 Denuncia #${denuncia.id}</h3>
+                <div style="margin: 15px 0;">
+                    <p><strong>👤 Usuario:</strong> ${denuncia.usuario_nombre}</p>
+                    <p><strong>🏷️ Categoría:</strong> ${denuncia.categoria}</p>
+                    <p><strong>📅 Fecha:</strong> ${denuncia.fecha_creacion.substring(0, 16)}</p>
+                    <p><strong>📊 Estado:</strong> <span class="status status-${denuncia.estado}">${denuncia.estado.replace('_', ' ')}</span></p>
+                </div>
+                ${imagenHtml}
+                <div style="margin: 15px 0;">
+                    <h4 style="color: #333; margin-bottom: 10px;">📄 Descripción:</h4>
+                    <div style="text-align: justify; line-height: 1.6; padding: 10px; background-color: #f8f9fa; border-radius: 5px;">
+                        ${denuncia.descripcion.replace(/\n/g, '<br>')}
+                    </div>
+                </div>
+                ${respuestaHtml}
+            `;
+            
+            openModal(content);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            openModal('<h3>Error</h3><p>No se pudo cargar el detalle de la denuncia.</p>');
+        });
+}
+
+{% if session.rol == 'admin' %}
+function responderDenuncia(denunciaId) {
+    const modal = document.getElementById('responderModal');
+    const form = document.getElementById('responderForm');
+    form.action = '/responder_denuncia/' + denunciaId;
+    modal.style.display = 'block';
+}
+{% endif %}
+</script>
+{% endblock %}

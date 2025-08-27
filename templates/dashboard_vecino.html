@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Vecino - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>🏠 Dashboard del Vecino</h2>
+    <p>Bienvenido, {{ session.nombre }}!</p>
+    
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <h3>📩 Mis Denuncias</h3>
+            <p>Gestiona tus denuncias y consulta su estado</p>
+            <a href="{{ url_for('denuncias') }}" class="btn btn-primary">Ver Denuncias</a>
+        </div>
+        
+        <div class="dashboard-card">
+            <h3>📰 Noticias</h3>
+            <p>Mantente informado de las últimas noticias</p>
+            <a href="{{ url_for('noticias') }}" class="btn btn-primary">Ver Noticias</a>
+        </div>
+        
+        <div class="dashboard-card">
+            <h3>📅 Eventos</h3>
+            <p>Participa en eventos comunitarios</p>
+            <a href="{{ url_for('eventos') }}" class="btn btn-primary">Ver Eventos</a>
+        </div>
+        
+        <div class="dashboard-card">
+            <h3>➕ Nueva Denuncia</h3>
+            <p>Reporta un problema en tu comunidad</p>
+            <a href="{{ url_for('nueva_denuncia') }}" class="btn btn-success">Crear Denuncia</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

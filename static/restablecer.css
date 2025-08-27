@@ -1,0 +1,487 @@
+/* Estilos específicos para nueva_contrasena.html */
+
+body {
+    font-family: 'Roboto', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #87CEEB 0%, #B0E0E6 30%, #E0F6FF 70%, #F0F8FF 100%);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    position: relative;
+}
+
+/* Efecto de partículas de fondo */
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(circle at 25% 25%, rgba(135, 206, 235, 0.1) 0%, transparent 50%),
+                      radial-gradient(circle at 75% 75%, rgba(176, 224, 230, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+}
+
+.container {
+    width: 100%;
+    max-width: 450px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(15px);
+    padding: 35px 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(135, 206, 235, 0.3), 
+                0 10px 20px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    border: 2px solid rgba(135, 206, 235, 0.2);
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    animation: slideInUp 0.6s ease-out;
+}
+
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1 {
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: #2C3E50;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(135, 206, 235, 0.2);
+}
+
+/* Subtítulo descriptivo */
+.subtitle {
+    font-size: 0.95rem;
+    color: #5A6C7D;
+    margin-bottom: 30px;
+    line-height: 1.4;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    font-size: 1rem;
+    color: #2C3E50;
+    margin-bottom: 8px;
+    text-align: left;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+/* Form Fields con íconos */
+.form-group {
+    position: relative;
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.form-group .icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #87CEEB;
+    font-size: 20px;
+    z-index: 5;
+    transition: color 0.3s ease;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 16px 55px 16px 50px; /* Más espacio a la derecha para el ícono del ojo */
+    border: 2px solid rgba(135, 206, 235, 0.4);
+    border-radius: 12px;
+    background: linear-gradient(145deg, rgba(240, 248, 255, 0.8), rgba(255, 255, 255, 0.9));
+    color: #2C3E50;
+    outline: none;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    background: rgba(240, 248, 255, 1);
+    border-color: #87CEEB;
+    box-shadow: 0 0 0 3px rgba(135, 206, 235, 0.2);
+    transform: translateY(-2px);
+}
+
+.form-group input:focus ~ .icon {
+    color: #5DADE2;
+}
+
+.form-group input::placeholder {
+    color: #7B8794;
+}
+
+/* Password Toggle Icon - DISEÑO EXACTO COMO LA IMAGEN */
+.toggle-password {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    transition: all 0.3s ease;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+}
+
+.toggle-password:hover {
+    background: rgba(135, 206, 235, 0.1);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.toggle-password:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+/* Ícono de ojo exacto como en la imagen */
+.eye-simple {
+    position: relative;
+    width: 20px;
+    height: 12px;
+    transition: all 0.3s ease;
+}
+
+/* Contorno del ojo - forma ovalada simple */
+.eye-simple::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 12px;
+    border: 1.5px solid #87CEEB;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+    background: transparent;
+}
+
+/* Pupila del ojo - punto central */
+.eye-simple::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: #87CEEB;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s ease;
+}
+
+/* Estado hover */
+.toggle-password:hover .eye-simple::before {
+    border-color: #5DADE2;
+}
+
+.toggle-password:hover .eye-simple::after {
+    background: #5DADE2;
+}
+
+/* Estado activo (contraseña oculta) - ojo cerrado */
+.toggle-password.active .eye-simple::before {
+    height: 2px;
+    border-radius: 10px;
+}
+
+.toggle-password.active .eye-simple::after {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+}
+
+/* Línea diagonal para ojo tachado */
+.toggle-password.active .eye-simple .strike-line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 1.5px;
+    background: #87CEEB;
+    transform: translate(-50%, -50%) rotate(45deg);
+    animation: strikeAppear 0.3s ease-out;
+}
+
+@keyframes strikeAppear {
+    0% {
+        width: 0;
+        opacity: 0;
+    }
+    100% {
+        width: 24px;
+        opacity: 1;
+    }
+}
+
+/* Indicador de fortaleza de contraseña */
+.password-strength {
+    margin-top: 8px;
+    height: 4px;
+    background: #E8E8E8;
+    border-radius: 2px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.password-strength-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #E74C3C, #F39C12, #F1C40F, #27AE60);
+    transition: width 0.3s ease;
+    border-radius: 2px;
+}
+
+.password-strength-text {
+    font-size: 0.8rem;
+    margin-top: 5px;
+    text-align: left;
+    color: #7B8794;
+}
+
+button {
+    padding: 16px;
+    background: linear-gradient(135deg, #87CEEB 0%, #5DADE2 50%, #3498DB 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 8px 25px rgba(135, 206, 235, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #5DADE2 0%, #3498DB 50%, #2980B9 100%);
+    box-shadow: 0 12px 30px rgba(135, 206, 235, 0.6);
+    transform: translateY(-3px);
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+button:active {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(135, 206, 235, 0.4);
+}
+
+button:disabled {
+    background: #BDC3C7;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+p {
+    margin-top: 25px;
+    font-size: 0.95rem;
+    color: #5A6C7D;
+    line-height: 1.5;
+}
+
+p a {
+    color: #87CEEB;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+p a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background: linear-gradient(90deg, #87CEEB, #5DADE2);
+    transition: width 0.3s ease;
+}
+
+p a:hover {
+    color: #5DADE2;
+}
+
+p a:hover::after {
+    width: 100%;
+}
+
+.flash-message {
+    background: linear-gradient(135deg, #D5F4E6 0%, #FFEAA7 100%);
+    color: #00B894;
+    border: 1px solid rgba(0, 184, 148, 0.3);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(0, 184, 148, 0.1);
+    animation: slideInDown 0.5s ease-out;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.flash-message.success {
+    background: linear-gradient(135deg, #D5F4E6 0%, #B8F2E6 100%);
+    color: #00B894;
+    border-color: rgba(0, 184, 148, 0.3);
+}
+
+.flash-message.error {
+    background: linear-gradient(135deg, #FFE5E5 0%, #FFD3D3 100%);
+    color: #E74C3C;
+    border-color: rgba(231, 76, 60, 0.3);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.1);
+}
+
+/* Requisitos de contraseña */
+.password-requirements {
+    background: rgba(240, 248, 255, 0.8);
+    border: 1px solid rgba(135, 206, 235, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+    text-align: left;
+}
+
+.password-requirements h4 {
+    margin: 0 0 10px 0;
+    color: #2C3E50;
+    font-size: 0.9rem;
+}
+
+.password-requirements ul {
+    margin: 0;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.password-requirements li {
+    font-size: 0.85rem;
+    color: #7B8794;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.password-requirements li::before {
+    content: '✗';
+    position: absolute;
+    left: -20px;
+    color: #E74C3C;
+    font-weight: bold;
+}
+
+.password-requirements li.valid::before {
+    content: '✓';
+    color: #00B894;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .container {
+        padding: 25px 30px;
+        margin: 20px;
+        max-width: 90%;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .form-group input {
+        padding: 14px 50px 14px 45px;
+        font-size: 0.95rem;
+    }
+    
+    button {
+        padding: 14px;
+        font-size: 1rem;
+    }
+    
+    .toggle-password {
+        width: 22px;
+        height: 22px;
+        right: 12px;
+    }
+    
+    .eye-simple {
+        width: 18px;
+        height: 10px;
+    }
+}
+
+/* Animación de carga */
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

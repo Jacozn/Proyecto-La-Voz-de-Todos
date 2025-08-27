@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Mis Eventos - Junta Vecinal{% endblock %}
+
+{% block content %}
+<div class="content-section">
+    <div class="section-header">
+        <h2>📅 Mis Eventos Inscritos</h2>
+        <a href="{{ url_for('eventos') }}" class="btn btn-secondary">🔙 Ver todos los eventos</a>
+    </div>
+    
+    {% if eventos_inscritos %}
+    <div class="events-grid">
+        {% for evento in eventos_inscritos %}
+        <div class="event-card">
+            {% if evento.imagen_path %}
+            <img src="{{ url_for('uploaded_file', filename=evento.imagen_path) }}" alt="{{ evento.titulo }}" class="event-image">
+            {% else %}
+            <div class="event-image-placeholder">📅</div>
+            {% endif %}
+            
+            <div class="event-content">
+                <h3>{{ evento.titulo }}</h3>
+                <p class="event-date">📅 {{ evento.fecha_evento }}</p>
+                <p class="event-location">📍 {{ evento.lugar }}</p>
+                <p class="event-preview">{{ evento.descripcion[:100] }}...</p>
+                
+                {% if evento.cupo_maximo > 0 %}
+                <p class="event-capacity">👥 Participación: {{ evento.inscripciones_actuales }}/{{ evento.cupo_maximo }}</p>
+                {% else %}
+                <p class="event-capacity">👥 Inscritos: {{ evento.inscripciones_actuales }} (Sin límite)</p>
+                {% endif %}
+                
+                <div class="event-actions">
+                    <button onclick="verEventoCompleto({{ evento.id }})" class="btn btn-sm btn-info">👁️ Ver detalles</button>
+                    <a href="{{ url_for('desinscribirse_evento', evento_id=evento.id) }}" 
+                       onclick="return confirm('¿Estás seguro de que quieres desinscribirte de este evento?')"
+                       class="btn btn-sm btn-warning">❌ Desinscribirse</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>📅 No tienes eventos inscritos</h3>
+        <p>Explora los eventos disponibles y únete a las actividades de tu comunidad.</p>
+        <a href="{{ url_for('eventos') }}" class="btn btn-primary">Ver eventos disponibles</a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function verEventoCompleto(eventoId) {
+    const eventos = {{ eventos_inscritos | tojson | safe }};
+    const evento = eventos.find(e => e.id === eventoId);
+    
+    if (evento) {
+        let imagenHtml = '';
+        if (evento.imagen_path) {
+            imagenHtml = `<img src="/uploads/${evento.imagen_path}" alt="${evento.titulo}" style="max-width: 100%; margin-bottom: 15px; border-radius: 5px;">`;
+        }
+        
+        let participacionHtml = '';
+        if (evento.cupo_maximo > 0) {
+            participacionHtml = `<p><strong>👥 Participación:</strong> ${evento.inscripciones_actuales}/${evento.cupo_maximo}</p>`;
+        } else {
+            participacionHtml = `<p><strong>👥 Inscritos:</strong> ${evento.inscripciones_actuales} (Sin límite)</p>`;
+        }
+        
+        const content = `
+            <h3>📅 ${evento.titulo}</h3>
+            <p><strong>📅 Fecha:</strong> ${evento.fecha_evento}</p>
+            <p><strong>📍 Lugar:</strong> ${evento.lugar}</p>
+            ${participacionHtml}
+            ${imagenHtml}
+            <div style="text-align: justify; line-height: 1.6;">
+                <strong>📄 Descripción:</strong><br>
+                ${evento.descripcion.replace(/\n/g, '<br>')}
+            </div>
+        `;
+        
+        openModal(content);
+    }
+}
+</script>
+{% endblock %}
